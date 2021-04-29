@@ -19,15 +19,17 @@ Challenge (from list, for now choose a few)
 MyApp.headerData = [
   { sTitle: "Farm Name" },
   { sTitle: "Location" },
+  { sTitle: "System" },
   { sTitle: "Benefits" },
-  { sTitle: "Col4" },
+  { sTitle: "Challenges" },
 ];
 
 MyApp.filterIndexes = {
-  regions: 1,
-  benefits: 2,
-  soilType: 3,
-  farmSystem: 4,
+  regions: 1, // aka locations
+  benefits: 3,
+  soilType: 9, // TBD
+  farmSystem: 2,
+  challenges: 4,
 };
 
 (MyApp.Regions = []), (MyApp.Benefits = []), (MyApp.SoilTypes = []);
@@ -40,10 +42,19 @@ $(function () {
       var farmName = val.gsx$farmname.$t;
       var location = val.gsx$location.$t;
       var benefits = val.gsx$benefitsofthiscovercrop.$t;
+      var farmSystem = val.gsx$orchardvineyardcropproduced.$t;
+      // TODO: soil type - currently not available in dataset
+      var challenges = val.gsx$challenges.$t;
 
       console.log("got farm", farmName);
 
-      MyApp.spreadsheetData.push([farmName, location, benefits, "col4"]);
+      MyApp.spreadsheetData.push([
+        farmName,
+        location,
+        farmSystem,
+        benefits,
+        challenges,
+      ]);
 
       // TODO: create sidebar links if the need to be dynamic
 
