@@ -32,7 +32,10 @@ MyApp.filterIndexes = {
   challenges: 4,
 };
 
-(MyApp.Regions = []), (MyApp.Benefits = []), (MyApp.SoilTypes = []);
+(MyApp.Regions = []),
+  (MyApp.Benefits = []),
+  (MyApp.SoilTypes = []),
+  (MyApp.FarmSystems = []);
 
 $(function () {
   var url =
@@ -62,6 +65,10 @@ $(function () {
       if ($.inArray(location, MyApp.Regions) === -1) {
         MyApp.Regions.push(location);
       }
+
+      if ($.inArray(location, MyApp.FarmSystems) === -1) {
+        MyApp.FarmSystems.push(farmSystem);
+      }
     });
 
     createDataTable();
@@ -76,6 +83,18 @@ function addFilters() {
   var $regions = $("#regions");
 
   $.each(MyApp.Regions, function (key, val) {
+    $regions.append(
+      '<li><label><input type="checkbox" name="' +
+        val +
+        '"> ' +
+        val +
+        "</label></li>"
+    );
+  });
+
+  var $regions = $("#farmSystem");
+
+  $.each(MyApp.FarmSystems, function (key, val) {
     $regions.append(
       '<li><label><input type="checkbox" name="' +
         val +
