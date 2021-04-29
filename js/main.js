@@ -10,8 +10,8 @@ Challenges
 */
 
 /* TODO: want to filter on
-Location (dyanmically added)
-OrchardVineyardCropProduced (dynamic)
+region (dyanmically added)
+OrchardVineyardCropProduced aka farmSystem (dynamic)
 SoilType (dynamic?)
 Benefits (from list, for now choose a few, ex: nitrogen fixing)
 Challenge (from list, for now choose a few)
@@ -23,47 +23,115 @@ MyApp.headerData = [
   { sTitle: "Col4" },
 ];
 
-// TODO: these categories are from an old app.  Need to replace and hook up to new app
-MyApp.ResearchAreaCategories = {
-  researchareapopulations: { name: "Populations defined by…", values: [] },
-  researcharealifephase: { name: "Life Phase", values: [] },
-  researchareaother: { name: "Other", values: [] },
-};
-
 MyApp.filterIndexes = {
-  colleges: 1,
-  departments: 2,
-  researchtitles: 3,
-  researcharea: 6,
+  regions: 1,
+  benefits: 2,
+  soilType: 3,
+  farmSystem: 4,
 };
 
-(MyApp.Colleges = []), (MyApp.ResearchTitles = []), (MyApp.Departments = []);
+(MyApp.Regions = []), (MyApp.Benefits = []), (MyApp.SoilTypes = []);
 
 $(function () {
-  console.log("running on start");
-
   var url =
     "https://spreadsheets.google.com/feeds/list/10oWvxWAJyQxo9OIEtChs-oDBc5ZA8AahGwU-Bo20WU4/1/public/full?alt=json-in-script&callback=?";
   $.getJSON(url, {}, function (data) {
     $.each(data.feed.entry, function (key, val) {
       var farmName = val.gsx$farmname.$t;
       var location = val.gsx$location.$t;
-      var benefits = val.gsx$benefitsofthiscovercrop.$t
+      var benefits = val.gsx$benefitsofthiscovercrop.$t;
 
       console.log("got farm", farmName);
 
       MyApp.spreadsheetData.push([farmName, location, benefits, "col4"]);
 
       // TODO: create sidebar links if the need to be dynamic
+
+      // Add data to filters
+      if ($.inArray(location, MyApp.Regions) === -1) {
+        MyApp.Regions.push(location);
+      }
     });
 
     createDataTable();
 
-    // add filters
+    addFilters();
 
     // hook up extra links or popups
   });
 });
+
+function addFilters() {
+  var $regions = $("#regions");
+
+  $.each(MyApp.Regions, function (key, val) {
+    $regions.append(
+      '<li><label><input type="checkbox" name="' +
+        val +
+        '"> ' +
+        val +
+        "</label></li>"
+    );
+  });
+
+  $(".filterrow").on("click", "ul.filterlist", function (e) {
+    var filterRegex = "";
+    var filterName = this.id;
+    var filterIndex = MyApp.filterIndexes[filterName];
+
+    var filters = [];
+    $("input", this).each(function (key, val) {
+      if (val.checked) {
+        if (filterRegex.length !== 0) {
+          filterRegex += "|";
+        }
+
+        filterRegex += "(^" + val.name + "$)"; //Use the hat and dollar to require an exact match
+      }
+    });
+
+    console.log("filtering", filterName, filterRegex, filterIndex);
+
+    MyApp.oTable.fnFilter(filterRegex, filterIndex, true, false);
+    displayCurrentFilters();
+  });
+
+  $("#clearfilters").click(function (e) {
+    e.preventDefault();
+
+    $(":checkbox", "ul.filterlist").each(function () {
+      this.checked = false;
+    });
+
+    $("ul.filterlist").click();
+  });
+}
+
+function displayCurrentFilters() {
+  var $filterAlert = $("#filters");
+  var filters = "";
+
+  $(":checked", "ul.filterlist").each(function () {
+    if (filters.length !== 0) {
+      filters += " + ";
+    }
+    filters += "<strong>" + this.name + "</strong>";
+  });
+
+  if (filters.length !== 0) {
+    var alert = $(
+      "<div class='alert alert-info'><strong>Filters</strong><p>You are filtering on " +
+        filters +
+        "</p></div>"
+    );
+
+    $filterAlert.html(alert);
+  } else {
+    $filterAlert.html(null);
+  }
+
+  $filterAlert[0].scrollIntoView(true);
+}
 
 function createDataTable() {
   //Create a sorter that uses case-insensitive html content
@@ -84,8 +152,8 @@ function createDataTable() {
   console.log(MyApp.spreadsheetData);
 
   MyApp.oTable = $("#spreadsheet").dataTable({
-    "iDisplayLength": 50,
-    "bLengthChange": false,
+    iDisplayLength: 50,
+    bLengthChange: false,
     data: MyApp.spreadsheetData,
     columns: MyApp.headerData,
   });
